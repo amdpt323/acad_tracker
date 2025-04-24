@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       Role
+  department Department?
+  createdAt  DateTime @default(now())
+
+  student    Student?
+  teacher    Teacher?
+}
+
+model Student {
+  userId     String   @id
+  user       User     @relation(fields: [userId], references: [id])
+  courses    CourseRegistration[]
+}
+
+model Teacher {
+  userId     String   @id
+  user       User     @relation(fields: [userId], references: [id])
+  courses    Course[]
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  courseType  CourseType
+  department  Department
+  teacherId   String
+  teacher     Teacher  @relation(fields: [teacherId], references: [userId])
+  registrations CourseRegistration[]
+}
+
+model CourseRegistration {
+  id         String   @id @default(uuid())
+  studentId  String
+  courseId   String
+  status     RegistrationStatus @default(PENDING)
+
+  student    Student  @relation(fields: [studentId], references: [userId])
+  course     Course   @relation(fields: [courseId], references: [id])
+}
+
+enum Role {
+  admin
+  teacher
+  student
+}
+
+enum CourseType {
+  INSTITUTE_COMPULSORY
+  DEPARTMENT_COMPULSORY
+  DEPARTMENT_ELECTIVE
+  OPEN_ELECTIVE
+}
+
+enum Department {
+  CSE
+  EE
+  MTH
+}
+
+enum RegistrationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model AdminSetting {
+  id      Int     @id @default(1) // Singleton record
+  isOpen  Boolean @default(false)
+}
