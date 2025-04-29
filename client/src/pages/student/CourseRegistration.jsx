@@ -1,38 +1,53 @@
 // src/pages/student/CourseRegistration.jsx
 import { useEffect, useState } from 'react'
 import RoleLayout from '../../components/RoleLayout'
-
-const mockCourses = [
-  {
-    id: 101,
-    name: 'Operating Systems',
-    type: 'Dept Compulsory',
-    teacher: 'Prof. A',
-  },
-  { id: 102, name: 'AI & ML', type: 'Dept Elective', teacher: 'Prof. B' },
-  { id: 103, name: 'Economics', type: 'Open Elective', teacher: 'Prof. C' },
-]
+import { fetchAvailableCourses, fetchRequestedCourses, requestCourse as rc } from '../../services/studentService'
+import { getRegistrationStatus } from '../../services/authService'
 
 const StudentCourseRegistration = () => {
-  const [registrationOpen, setRegistrationOpen] = useState(true) // mock state
+  const [registrationOpen, setRegistrationOpen] = useState(false) // mock state
   const [courses, setCourses] = useState([])
   const [requestedCourses, setRequestedCourses] = useState([])
 
   useEffect(() => {
-    // simulate fetching course list and registration status
-    setCourses(mockCourses)
-    // fetch registrationOpen status from backend later
+    // Fetch courses and registration status from backend
+    const fetchCourses = async () => {
+      try {
+        const fetchedCourses = await fetchAvailableCourses()
+        const fetchedRequestedCourses = await fetchRequestedCourses();
+
+        console.log(fetchedCourses);
+        console.log(fetchedRequestedCourses);
+        
+        setCourses(fetchedCourses);
+        setRequestedCourses(fetchedRequestedCourses);
+      } catch (error) {
+        console.error('Error fetching courses:', error)
+      }
+    }
+
+    const getStatus = async()=>{
+        try {
+          const data = await getRegistrationStatus();
+          console.log(data);
+          setRegistrationOpen(data.isOpen)
+        } catch (error) {
+          console.log(error);
+        }
+        
+    }
+
+    getStatus();
+
+    fetchCourses()
   }, [])
 
-  const requestCourse = (courseId) => {
-    if (!registrationOpen) return
-
-    const course = courses.find((c) => c.id === courseId)
-    if (!requestedCourses.find((rc) => rc.id === courseId)) {
-      setRequestedCourses([
-        ...requestedCourses,
-        { ...course, status: 'Pending' },
-      ])
+  const requestCourse = async (courseId) => {
+    try {
+      const status = await rc(courseId);
+      console.log(status);
+    } catch (error) {
+      console.log(error);
     }
   }
 
@@ -56,7 +71,8 @@ const StudentCourseRegistration = () => {
                 <div>
                   <p className='font-semibold'>{course.name}</p>
                   <p className='text-sm text-gray-600'>
-                    {course.type} | {course.teacher}
+                    {course.courseType} |{' '}
+                    {course.teacher?.name || 'No teacher assigned'}
                   </p>
                 </div>
                 <button

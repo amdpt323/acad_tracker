@@ -1,7 +1,7 @@
 // src/pages/admin/AdminDashboard.jsx
 import { useEffect, useState } from 'react'
 import RoleLayout from '../../components/RoleLayout'
-import { fetchUsers, register } from '../../services/authService'
+import { fetchUsers, getRegistrationStatus, register, setRegistrationStatus } from '../../services/authService'
 
 const AdminDashboard = () => {
   const [registrationOpen, setRegistrationOpen] = useState(false) // this should come from backend
@@ -16,7 +16,8 @@ const AdminDashboard = () => {
     // Fetch registration status and user list
     // Placeholder logic for now
     getAllUsers();
-  }, [])
+    getStatus();
+  }, [registrationOpen])
 
   const getAllUsers = async ()=>{
     const fetchedUsers = await fetchUsers();
@@ -24,9 +25,23 @@ const AdminDashboard = () => {
     setUsers(fetchedUsers)
   }
 
-  const toggleRegistration = () => {
-    setRegistrationOpen(!registrationOpen)
-    // send API call here
+  const getStatus = async()=>{
+    try {
+      const data = await getRegistrationStatus();
+      setRegistrationOpen(data.isOpen)
+    } catch (error) {
+      console.log(error);
+    }
+    
+  }
+
+  const toggleRegistration = async() => {
+    try {
+      const data = await setRegistrationStatus(!registrationOpen);
+      setRegistrationOpen(!registrationOpen)
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   const handleInputChange = (e) => {

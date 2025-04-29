@@ -25,17 +25,35 @@ exports.login = async (req, res) => {
 exports.registerUser = async (req, res) => {
   const { name, email, password, role, department } = req.body
 
-  const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) return res.status(400).json({ error: 'User already exists' })
+  try {
+    const existing = await prisma.user.findUnique({ where: { email } })
+    if (existing) return res.status(400).json({ error: 'User already exists' })
 
-  const hashed = await bcrypt.hash(password, 10)
-  
-  const user = await prisma.user.create({
-    data: { name, email, password: hashed, role, department },
-  })
+    const hashed = await bcrypt.hash(password, 10)
 
-  res.json({ message: 'User created', user })
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashed,
+        role,
+        department,
+        ...(role === 'teacher' && { teacher: { create: {} } }),
+        ...(role === 'student' && { student: { create: {} } }),
+      },
+      include: {
+        teacher: true,
+        student: true,
+      }
+    })
+
+    res.json({ message: 'User created', user })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Something went wrong' })
+  }
 }
+
 
 exports.getUsers = async (req, res) => {
   try {
@@ -65,3 +83,33 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ error: 'Something went wrong' })
   }
 }
+
+exports.getRegistrationStatus = async (req, res) => {
+  try {
+    const setting = await prisma.adminSetting.findUnique({
+      where: { id: 1 }, // Singleton record
+    });
+
+    return res.status(200).json({ isOpen: setting?.isOpen ?? false });
+  } catch (error) {
+    console.error("Error getting registration status:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.setRegistrationStatus = async (req, res) => {
+  const { isOpen } = req.body;
+
+  try {
+    const updated = await prisma.adminSetting.upsert({
+      where: { id: 1 },
+      update: { isOpen },
+      create: { id: 1, isOpen },
+    });
+
+    return res.status(200).json({ isOpen: updated.isOpen });
+  } catch (error) {
+    console.error("Error setting registration status:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};

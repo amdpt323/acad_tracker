@@ -39,6 +39,25 @@ export const fetchUsers = async()=>{
   }
 }
 
+export const getRegistrationStatus = async()=>{
+  try {
+    const response = await api.get('/auth/get-registration-status');
+    return response.data
+  } catch (error) {
+    console.log('Error Fetching Registataion Status');
+    throw error;
+  }
+}
+
+export const setRegistrationStatus = async (isOpen) => {
+  try {
+    const response = await api.post('/auth/set-registration-status',{isOpen})
+    return response.data
+  } catch (error) {
+    console.log('Error Setting Registataion Status')
+    throw error
+  }
+}
 
 export const logout = () => {
   localStorage.removeItem('token')

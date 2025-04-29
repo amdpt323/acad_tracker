@@ -22,4 +22,10 @@ router.get(
   authController.getUsers
 )
 
+router.get('/get-registration-status',authMiddleware,authController.getRegistrationStatus)
+router.post('/set-registration-status',authMiddleware
+  ,roleMiddleware(['admin']),
+  authController.setRegistrationStatus
+)
+
 module.exports = router

@@ -9,12 +9,13 @@ const Sidebar = () => {
   const links = {
     student: [
       { path: '/student/dashboard', label: 'Dashboard' },
+      { path: '/student/register-course', label: 'Registrations' },
       { path: '/student/courses', label: 'My Courses' },
       { path: '/student/performance', label: 'Performance' },
     ],
     teacher: [
       { path: '/teacher/dashboard', label: 'Dashboard' },
-      { path: "/teacher/requests", label: "Course Requests" },
+      { path: '/teacher/requests', label: 'Course Requests' },
       { path: '/teacher/students', label: 'Students' },
       { path: '/teacher/grading', label: 'Grading Scheme' },
     ],

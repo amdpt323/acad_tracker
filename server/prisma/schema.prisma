@@ -33,14 +33,17 @@ model Teacher {
 }
 
 model Course {
-  id          String   @id @default(uuid())
-  name        String
-  code        String   @unique
-  courseType  CourseType
-  department  Department
-  teacherId   String
-  teacher     Teacher  @relation(fields: [teacherId], references: [userId])
+  id            String   @id @default(uuid())
+  name          String
+  code          String   @unique
+  courseType    CourseType
+  department    Department
+  teacherId     String?
+  teacher       Teacher? @relation(fields: [teacherId], references: [userId])
   registrations CourseRegistration[]
+
+  totals        Decimal[] // Total marks for each of the 6 components
+  weights       Decimal[] // Weight percentages for each of the 6 components
 }
 
 model CourseRegistration {
@@ -49,6 +52,8 @@ model CourseRegistration {
   courseId   String
   status     RegistrationStatus @default(PENDING)
 
+  marks      Decimal[] // Marks for each of the 6 components
+  grade      Grade?
   student    Student  @relation(fields: [studentId], references: [userId])
   course     Course   @relation(fields: [courseId], references: [id])
 }
@@ -77,6 +82,18 @@ enum RegistrationStatus {
   ACCEPTED
   REJECTED
 }
+
+
+enum Grade {
+  A_STAR
+  A
+  B
+  C
+  D
+  E
+  F
+}
+
 
 model AdminSetting {
   id      Int     @id @default(1) // Singleton record
